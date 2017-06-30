@@ -29,4 +29,12 @@ public class StockEntry {
     }
 
     public StockEntry() {}
+
+    @Override
+    public String toString() {
+        return "StockEntry{" +
+                "symbol='" + symbol + '\'' +
+                ", currentPrice=" + currentPrice +
+                '}';
+    }
 }

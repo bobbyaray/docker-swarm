@@ -1,14 +1,9 @@
-package com.bobbyaray.cache;
-
-import org.springframework.data.annotation.Id;
-import org.springframework.data.redis.core.RedisHash;
+package com.bobbyaray.stock;
 
 /**
  * Created by robertray on 6/7/17.
  */
-@RedisHash("stockentry")
 public class StockEntry {
-    @Id
     private String symbol;
     private double currentPrice;
 
@@ -34,12 +29,4 @@ public class StockEntry {
     }
 
     public StockEntry() {}
-
-    @Override
-    public String toString() {
-        return "StockEntry{" +
-                "symbol='" + symbol + '\'' +
-                ", currentPrice=" + currentPrice +
-                '}';
-    }
 }

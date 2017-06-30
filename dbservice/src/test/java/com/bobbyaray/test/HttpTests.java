@@ -1,6 +1,7 @@
 package com.bobbyaray.test;
 
 import com.bobbyaray.db.StockEntry;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.web.client.RestTemplate;
 
@@ -13,7 +14,7 @@ public class HttpTests {
         RestTemplate rest = new RestTemplate();
         StockEntry entry = new StockEntry("VMW", 92.8);
 
-        String result = rest.postForObject("http://localhost:8080/saveprice", entry, String.class);
+        String result = rest.postForObject("http://localhost:8081/saveprice", entry, String.class);
         System.out.println("Result: " + result);
     }
 }

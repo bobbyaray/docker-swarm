@@ -19,13 +19,16 @@ public class CacheRestController {
     @Autowired
     private RedisDAO redisDAO;
 
+    @Autowired
+    private StockService stockService;
+
     @RequestMapping(value = "/stocks", method = RequestMethod.GET)
     public ResponseEntity<List<StockEntry>> getStocks() {
-        return new ResponseEntity<List<StockEntry>>(redisDAO.getStockQuotes(), HttpStatus.OK);
+        return new ResponseEntity<>(stockService.getStockQuotes(), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/stock/{symbol}", method = RequestMethod.GET)
-    public ResponseEntity<String> getStock(@PathVariable("symbol") String symbol) {
-        return new ResponseEntity<String>(redisDAO.getStockQuote(symbol), HttpStatus.OK);
+    public ResponseEntity<StockEntry> getStock(@PathVariable("symbol") String symbol) {
+        return new ResponseEntity<>(stockService.getStockQuote(symbol), HttpStatus.OK);
     }
 }
