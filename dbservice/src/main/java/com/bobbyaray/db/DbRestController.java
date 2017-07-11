@@ -1,12 +1,10 @@
 package com.bobbyaray.db;
 
-import org.influxdb.InfluxDB;
-import org.influxdb.dto.BatchPoints;
 import org.influxdb.dto.Point;
 import org.influxdb.dto.Query;
 import org.influxdb.dto.QueryResult;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.influxdb.InfluxDBTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,38 +19,27 @@ import java.util.concurrent.TimeUnit;
 @RestController
 public class DbRestController {
     @Autowired
-    private InfluxDB influxDB;
-
-    @Autowired
-    @Qualifier("dbname")
-    private String dbName;
+    private InfluxDBTemplate<Point> influxDBTemplate;
 
     @RequestMapping(value = "/saveprice", method = RequestMethod.POST)
     public ResponseEntity<String> saveprice(@RequestBody StockEntry stockEntry) {
         System.out.println("Received: " + stockEntry.toString());
-        BatchPoints batchPoints = BatchPoints
-                .database(dbName)
-                .tag("async", "true")
-                .retentionPolicy("autogen")
-                .consistency(InfluxDB.ConsistencyLevel.ALL)
-                .build();
-
-        Point point = Point.measurement("stock_data")
+        influxDBTemplate.createDatabase();
+        final Point p = Point.measurement("stock_data")
                 .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS)
-                .addField("price", stockEntry.getCurrentPrice())
-                .tag("Symbol", stockEntry.getSymbol()) // tag the individual point
+                .addField("symbol", stockEntry.getSymbol())
+                .addField("value", stockEntry.getCurrentPrice())
                 .build();
-
-        batchPoints.point(point);
-        influxDB.write(batchPoints);
+        influxDBTemplate.write(p);
 
         return new ResponseEntity<String>("OK", HttpStatus.OK);
     }
 
     @RequestMapping(value = "/stock/{symbol}", method = RequestMethod.GET)
     public ResponseEntity<List<StockPoint>> getStock(@PathVariable("symbol") String symbol) {
-        Query query = new Query("SELECT * FROM stock_data where Symbol = '" + symbol + "'", dbName);
-        QueryResult queryResult = influxDB.query(query);
+        Query query = new Query("SELECT * FROM stock_data where symbol = '" + symbol + "'",
+                influxDBTemplate.getDatabase());
+        QueryResult queryResult = influxDBTemplate.getConnection().query(query);
 
         List<StockPoint> stockPoints = new ArrayList<StockPoint>();
         for(QueryResult.Result result: queryResult.getResults()){
@@ -61,7 +48,7 @@ public class DbRestController {
                 for(List<Object> value: values){
                     StockPoint point = new StockPoint();
                     point.setTime((String)value.get(0));
-                    point.setValue((Double)value.get(3));
+                    point.setValue((Double)value.get(2));
                     stockPoints.add(point);
                 }
             }
@@ -76,15 +63,16 @@ public class DbRestController {
         List<StockEntry> stocks = new ArrayList<>();
 
         for(String symbol: symbols){
-            Query query = new Query("SELECT last(*) FROM stock_data where Symbol = '" + symbol + "'", dbName);
-            QueryResult queryResult = influxDB.query(query);
+            Query query = new Query("SELECT last(*) FROM stock_data where symbol = '" + symbol + "'",
+                    influxDBTemplate.getDatabase());
+            QueryResult queryResult = influxDBTemplate.getConnection().query(query);
 
             for(QueryResult.Result result: queryResult.getResults()){
                 for (QueryResult.Series series : result.getSeries()) {
                     List<List<Object>> values = series.getValues();
                     for(List<Object> value: values){
                         StockEntry entry = new StockEntry();
-                        entry.setCurrentPrice((Double)value.get(1));
+                        entry.setCurrentPrice((Double)value.get(2));
                         entry.setSymbol(symbol);
                         stocks.add(entry);
                     }
@@ -96,8 +84,9 @@ public class DbRestController {
     }
 
     private List<String> getStockSymbolsFromDB(){
-        Query query = new Query("SHOW TAG VALUES FROM \"stock_data\" WITH KEY = \"Symbol\"", dbName);
-        QueryResult queryResult = influxDB.query(query);
+        Query query = new Query("select distinct(symbol) from stock_data",
+                influxDBTemplate.getDatabase());
+        QueryResult queryResult = influxDBTemplate.getConnection().query(query);
         List<String> symbols = new ArrayList<>();
         for(QueryResult.Result result: queryResult.getResults()){
             for (QueryResult.Series series : result.getSeries()) {

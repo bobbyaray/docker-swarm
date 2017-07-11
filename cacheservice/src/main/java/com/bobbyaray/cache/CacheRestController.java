@@ -17,9 +17,6 @@ import java.util.Map;
 @RestController
 public class CacheRestController {
     @Autowired
-    private RedisDAO redisDAO;
-
-    @Autowired
     private StockService stockService;
 
     @RequestMapping(value = "/stocks", method = RequestMethod.GET)

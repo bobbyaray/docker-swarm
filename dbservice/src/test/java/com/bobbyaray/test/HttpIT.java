@@ -8,7 +8,7 @@ import org.springframework.web.client.RestTemplate;
 /**
  * Created by robertray on 6/8/17.
  */
-public class HttpTests {
+public class HttpIT {
     @Test
     public void sendNewStockPrice(){
         RestTemplate rest = new RestTemplate();

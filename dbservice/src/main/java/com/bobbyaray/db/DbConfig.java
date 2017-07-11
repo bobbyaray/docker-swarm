@@ -2,36 +2,46 @@ package com.bobbyaray.db;
 
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
+import org.influxdb.dto.Point;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.influxdb.DefaultInfluxDBTemplate;
+import org.springframework.data.influxdb.InfluxDBConnectionFactory;
+import org.springframework.data.influxdb.InfluxDBProperties;
+import org.springframework.data.influxdb.InfluxDBTemplate;
+import org.springframework.data.influxdb.converter.PointConverter;
 
 /**
  * Created by robertray on 6/7/17.
  */
 @Configuration
+@EnableConfigurationProperties(InfluxDBProperties.class)
 public class DbConfig {
-    @Value("${spring.influxdb.url}")
-    private String dbUrl;
-
-    @Value("${spring.influxdb.username}")
-    private String dbUser;
-
-    @Value("${spring.influxdb.password}")
-    private String dbPass;
-
-    @Value("${spring.influxdb.database}")
-    private String dbName;
-
-    @Bean("dbname")
-    public String getDbName(){
-        return dbName;
+    @Bean
+    public InfluxDBConnectionFactory connectionFactory(final InfluxDBProperties properties)
+    {
+        return new InfluxDBConnectionFactory(properties);
     }
 
     @Bean
-    public InfluxDB getInfluxDB(){
-        InfluxDB influxDB = InfluxDBFactory.connect(dbUrl, dbUser, dbPass);
-        influxDB.createDatabase(dbName);
-        return influxDB;
+    public InfluxDBTemplate<Point> influxDBTemplate(final InfluxDBConnectionFactory connectionFactory)
+    {
+    /*
+     * You can use your own 'PointCollectionConverter' implementation, e.g. in case
+     * you want to use your own custom measurement object.
+     */
+        return new InfluxDBTemplate<>(connectionFactory, new PointConverter());
+    }
+
+    @Bean
+    public DefaultInfluxDBTemplate defaultTemplate(final InfluxDBConnectionFactory connectionFactory)
+    {
+    /*
+     * If you are just dealing with Point objects from 'influxdb-java' you could
+     * also use an instance of class DefaultInfluxDBTemplate.
+     */
+        return new DefaultInfluxDBTemplate(connectionFactory);
     }
 }

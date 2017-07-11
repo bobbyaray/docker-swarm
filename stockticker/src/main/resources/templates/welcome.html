@@ -7,9 +7,6 @@
     <link rel="stylesheet" type="text/css"
           href="webjars/bootstrap/3.3.7/css/bootstrap.min.css" />
 
-    <link rel="stylesheet" th:href="@{/css/main.css}"
-          href="../../css/main.css" />
-
 </head>
 <body>
 
@@ -28,14 +25,27 @@
 </nav>
 
 <div class="container">
-
-    <div class="starter-template">
-        <h1>Stock Ticker</h1>
-        <h2>
-            <span th:text="'Message: ' + ${message}"></span>
-        </h2>
+    <h1>Stock Ticker</h1>
+    <h2>Current Prices</h2>
+    <div>Click any stock symbol below for detailed data.</div><br/>
+    <div th:if="${not #lists.isEmpty(stocks)}">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Current Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="stock : ${stocks}">
+                    <td>
+                        <a th:href="@{'/stockdetails/' + ${stock.symbol}}"><span th:text="${stock.symbol}"></span></a>
+                    </td>
+                    <td th:text="${stock.currentPrice}"></td>
+                </tr>
+            </tbody>
+        </table>
     </div>
-
 </div>
 <!-- /.container -->
 

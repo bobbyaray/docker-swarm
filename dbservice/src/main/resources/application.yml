@@ -4,5 +4,6 @@ spring:
     username: user
     password: password
     database: stocks
+    retentionPolicy: autogen
 server:
   port: 8081
