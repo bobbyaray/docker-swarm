@@ -1,0 +1,56 @@
+version: '3'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  influxdb:
+    image: tutum/influxdb
+    restart: always
+    ports:
+      - "8083:8083"
+      - "8086:8086"
+
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  cacheservice:
+    image: cacheservice
+    restart: always
+    ports:
+      - "8082:8082"
+    depends_on:
+      - redis
+      - rabbitmq
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_REDIS_HOST: redis
+
+  dbservice:
+    image: dbservice
+    restart: always
+    ports:
+      - "8081:8081"
+    depends_on:
+      - influxdb
+    environment:
+      SPRING_INFLUXDB_URL: http://influxdb:8086
+
+  stockticker:
+    image: stockticker
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - dbservice
+      - cacheservice
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_DBSERVICE_HOST: dbservice

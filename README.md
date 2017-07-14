@@ -13,5 +13,22 @@ There are 6 services that will be deployed to support the application described 
 5. Redis
 6. InfluxDB
 
-##Building the docker images
-Each spring boot application includes a Docker file in its src/main/Docker folder. After building the application
+## Building the docker images
+After building the applications, each maven module will have its own deployment directory inside of its target directory. Using a command line, go to the following directories:
+1. stockticker: docker_swarm/stockticker/target/stockticker-1.0
+2. dbservice: docker_swarm/dbservice/target/dbservice-1.0
+3. cacheservice: docker_swarm/cacheservice/target/cacheservice-1.0
+
+From each directory, run the following command:
+$ docker build -t [tag_name] .
+
+If all three images build successfully then you can use docker compose and docker stacks.
+
+## Docker Compose
+Using docker compose will deploy all of the services on one machine. The docker compose file can be found at docker_swarm/stockticker/target/stockticker-1.0/compose after building. Run this compose file with the following command:
+
+$ docker-compose up
+
+## Docker Swarm Stack
+
+Before deploying to a swarm, you must create a swarm.
