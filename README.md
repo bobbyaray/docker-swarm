@@ -31,4 +31,6 @@ $ docker-compose up
 
 ## Docker Swarm Stack
 
-Before deploying to a swarm, you must create a swarm.
+Before deploying to a swarm, you must create a swarm. Please refer to the docker documentation for creating and joining swarms. Once you have a swarm ready, you can deploy this application using the following command:
+
+$ docker stack deploy -c docker-compose.yml stock_stack
